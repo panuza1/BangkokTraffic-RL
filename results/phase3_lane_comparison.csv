@@ -1,0 +1,7 @@
+depart_lane,demand_fraction,loaded,departed,arrived,running,waiting_insertion,pending_link1,pending_link3,pending_link5,pending_link6,teleports,discarded,collisions,top_halted_edge,halted_vehicle_samples
+best,0.25,336,336,318,18,0,0,0,0,0,0,0,0,747478914#4,297
+best,0.5,671,619,542,77,52,0,0,0,52,0,0,0,295789573#0,1181
+best,1.0,1341,748,577,171,593,172,38,179,204,0,0,0,295789573#0,3330
+free,0.25,336,336,318,18,0,0,0,0,0,0,0,0,747478914#4,299
+free,0.5,671,629,538,91,42,0,0,0,42,0,0,0,295789573#0,1313
+free,1.0,1341,781,528,253,560,178,0,182,200,0,0,0,295789573#0,5789

@@ -65,3 +65,24 @@ Every adjacent route edge has passenger lane connections and SUMO reported no ro
 Origin lengths/lane counts: Link 1 24.43 m / 4, Link 3 524.39 m / 3, Link 5 50.24 m / 4, Link 6 32.62 m / 4. Other short route edges include `295789573#1` (2.81 m), and `751476541`, `1136400026`, `39943703#9` (0.20 m each). Short modeled segments and limited boundary storage warrant geometry and spillback review; their causal effect is not established. The network root is `lefthand="true"`, consistent with its `netconvert --lefthand` build; this does not validate historical geometry.
 
 Reproduce with `unset PYTHONPATH; .venv/bin/python scripts/diagnose_insertion.py`. See [scenario statistics](../results/phase3_demand_sensitivity.csv) and [origin snapshots](../results/phase3_insertion_by_origin.csv). The script checks vehicle accounting and final origin totals; two executions produced identical CSV hashes. No safety constraints were relaxed and no held-out test data was used.
+
+## Phase 3 lane-choice experiment and calibration readiness — 2026-11-06
+
+The 593 pending vehicles cannot responsibly be eliminated by treating detector counts as boundary arrivals or inventing turning proportions. To test an insertion change without changing demand, routes, network, signal timing, clearance, seed, or 900 s horizon, `scripts/compare_insertion_lanes.py` compares the existing `departLane="best"` with `departLane="free"` at three demand scales. These are controlled exploratory scenarios, not alternative estimates of observed demand. Each run checks loaded/departed/waiting/discarded and departed/arrived/running accounting, and pending vehicles by origin. The full results are in [lane comparison](../results/phase3_lane_comparison.csv).
+
+| Demand | Lane choice | Loaded | Departed | Arrived | Running | Pending | Collision / teleport / discarded |
+|---|---|---:|---:|---:|---:|---:|---|
+| 25% | best | 336 | 336 | 318 | 18 | 0 | 0 / 0 / 0 |
+| 25% | free | 336 | 336 | 318 | 18 | 0 | 0 / 0 / 0 |
+| 50% | best | 671 | 619 | 542 | 77 | 52 | 0 / 0 / 0 |
+| 50% | free | 671 | 629 | 538 | 91 | 42 | 0 / 0 / 0 |
+| 100% | best | 1,341 | 748 | 577 | 171 | 593 | 0 / 0 / 0 |
+| 100% | free | 1,341 | 781 | 528 | 253 | 560 | 0 / 0 / 0 |
+
+At full demand, `free` shifts 33 vehicles from the insertion queue into the network but 49 fewer arrive by the horizon; it is not an established fix. Pending by Link 1/3/5/6 changes from 172/38/179/204 to 178/0/182/200. At 50%, all pending vehicles remain at Link 6. The largest sum of sampled halted-vehicle counts (one snapshot every 10 s, excluding internal edges) is on Link 3's `295789573#0`: 3,330 with `best`, 5,789 with `free` at full demand. This is a snapshot-based congestion indicator, not vehicle-seconds or independent proof of a single bottleneck. Link 3's route uses only lane 0 at its final turn, and Link 6 uses lanes 0–1; short upstream edges, service time and downstream spillback may also constrain insertion. Signalized route movements and clearance remain as documented above. `free` may insert into lanes that are less suitable downstream, so no change to the default scenario is justified by the smaller pending count alone. The 593-vehicle problem remains unresolved at full estimated demand.
+
+**Realism and readiness:** The network is left-hand and the modeled signal conflict/clearance checks pass; zero reported collisions and teleports in these short runs do not validate actual safety. Current-map geometry, turn restrictions, the one-turn-per-approach allocation, lanes used, traffic mix, boundary arrival rates, signal program, detector positions and timezone remain unverified for 2016. Constant flows, empty start and no drain make the 15-minute outcomes transient; completed-trip travel time excludes pending and unfinished vehicles. This is a Bangkok-informed exploratory simulation, not a calibrated model and not ready for defensible calibration against these counts as though they were boundary flows.
+
+Before calibration, establish historical geometry and permitted movements, detector-to-lane/location mapping and observed signal timing/clearance; obtain defensible upstream arrival and turning data plus independent queue or travel-time measurements. Define warm-up, horizon and drain, stochastic replication, objective metrics and acceptance thresholds before tuning. Fit only on the designated training data, evaluate on a separate validation day, and reserve 9 June 2016 test data for the final locked evaluation. Record missing data and uncertainty; do not label the model calibrated unless predefined criteria and independent validation are met. Stop before Phase 4 for review.
+
+Reproduce: `unset PYTHONPATH; .venv/bin/python scripts/compare_insertion_lanes.py`. No 9 June observations are read by this experiment.
