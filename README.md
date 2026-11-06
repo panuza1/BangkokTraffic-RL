@@ -20,10 +20,10 @@ The smoke test checks that Python and the `sumo` executable run; it does not val
 
 ## Reproducibility and artifacts
 
-Record explicit integer seeds in each future experiment configuration and pass the same seeds to all relevant random generators and SUMO. Use paired seeds across controllers and keep training and held-out days separate. No experiment seeds or results have been chosen yet.
+Record explicit integer seeds in each future experiment configuration and pass the same seeds to all relevant random generators and SUMO. Use paired seeds across controllers and keep training and held-out days separate. The exploratory Phase 3 case uses seed 42; formal training and held-out evaluation seeds have not been selected.
 
 Keep source data in `data/raw/` and generated data in `data/processed/` (both ignored by Git). Place small reports in `docs/`, experiment settings in `configs/`, SUMO artifacts in `sumo/`, and small metrics and plots in `results/` as those phases require them. Do not commit large or ambiguously licensed raw data.
 
 ## Exploratory SUMO case
 
-The current OSM-derived passenger-vehicle case is **not calibrated**. See [the Phase 3 report](docs/calibration.md) for road and signal limitations, observed-versus-simulated counts, and the substantial queue waiting to enter the model. [SUMO setup and reproduction](sumo/README.md) includes OpenStreetMap attribution and commands. Do not use the model to control real traffic or draw validated performance conclusions.
+The current OSM-derived passenger-vehicle case is **not calibrated**. In the 900 s seed-42 scenario, 1,341 vehicles were scheduled, 748 entered the network, and 593 were still waiting to enter at the end; Phase 4 baselines and DQN have not started. See [the Phase 3 report](docs/calibration.md) for road and signal limitations, observed-versus-simulated counts, and the substantial queue waiting to enter the model. [SUMO setup and reproduction](sumo/README.md) includes OpenStreetMap attribution and commands. Do not use the model to control real traffic or draw validated performance conclusions.
