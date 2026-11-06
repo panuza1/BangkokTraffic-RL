@@ -1,0 +1,4 @@
+demand_fraction,loaded,scheduled,departed,arrived,running,waiting_insertion,teleports,discarded,collisions,mean_completed_travel_time_s
+0.25,336,336,336,318,18,0,0,0,0,52.52
+0.5,671,671,619,542,77,52,0,0,0,88.29
+1.0,1341,1341,748,577,171,593,0,0,0,161.33

@@ -1,0 +1,16 @@
+<configuration>
+  <input>
+    <net-file value="sathorn.net.xml"/>
+    <route-files value="case.rou.xml"/>
+    <additional-files value="detectors.add.xml"/>
+  </input>
+  <time><begin value="0"/><end value="900"/></time>
+  <random_number><seed value="42"/></random_number>
+  <processing><time-to-teleport value="-1"/><collision.action value="warn"/></processing>
+  <output>
+    <tripinfo-output value="../results/phase3_tripinfo.xml"/>
+    <tripinfo-output.write-unfinished value="true"/>
+    <statistic-output value="../results/phase3_statistics.xml"/>
+  </output>
+  <report><no-step-log value="true"/></report>
+</configuration>
