@@ -86,3 +86,44 @@ At full demand, `free` shifts 33 vehicles from the insertion queue into the netw
 Before calibration, establish historical geometry and permitted movements, detector-to-lane/location mapping and observed signal timing/clearance; obtain defensible upstream arrival and turning data plus independent queue or travel-time measurements. Define warm-up, horizon and drain, stochastic replication, objective metrics and acceptance thresholds before tuning. Fit only on the designated training data, evaluate on a separate validation day, and reserve 9 June 2016 test data for the final locked evaluation. Record missing data and uncertainty; do not label the model calibrated unless predefined criteria and independent validation are met. Stop before Phase 4 for review.
 
 Reproduce: `unset PYTHONPATH; .venv/bin/python scripts/compare_insertion_lanes.py`. No 9 June observations are read by this experiment.
+
+## Phase 3 controlled bottleneck ablation — 2026-11-06
+
+The baseline is the existing case: the original network and routes, seed 42, 900 s empty start, no drain, `best` departure lane and 12 s greens with 4 s yellow/2 s all-red. Each temporary intervention changes one assumption, at 25%, 50%, and 100% of the **already estimated** demand. No baseline model files were changed and no 9 June test data was read. The interventions are sensitivity probes, not proposed historical values:
+
+- **Link 3 free lane:** only Link 3's `departLane` changes from `best` to `free`; all routes and final turning connections remain identical. This probes insertion lane choice, not the effect of adding a legal turning lane.
+- **Link 6 storage:** only the modeled length attribute of every lane on short origin `39943703#7` increases by 100 m, from 32.62 m to 132.62 m. The lane shape and rest of the network remain unchanged. This deliberately artificial virtual-storage probe is not a geometry correction and does not establish real road length; it also increases simulated driving distance. The 100 m is a diagnostic contrast, not a measured estimate.
+- **Longer greens:** each of the five green durations changes from 12 to 18 s; sequence and green states are unchanged. Yellow remains 4 s and all-red 2 s; the cycle grows from 90 to 120 s and the green share from 60/90 to 90/120. Thus the contrast tests this combined change in cycle and green share, not either effect independently. The 18 s value is a diagnostic contrast, not observed timing or a recommendation. Every generated network passes the conflict-matrix and clearance checks; these checks do not establish field safety.
+
+### Before/after metrics
+
+Queue is the **mean number of halted vehicles** (SUMO speed below 0.1 m/s) on the edges of the four modeled routes before their final destination edges, sampled every 10 s; it excludes internal junction lanes, destination edges and vehicles waiting outside. Individual edge/lane results, including snapshot maxima, are in [lane queues](../results/phase3_lane_queues.csv). Travel time is the mean of **completed** trips from insertion to arrival; it excludes departure delay and unfinished or undeparted vehicles. An apparently shorter mean may reflect which trips completed. The other counts are end-of-run values; loaded = inserted + waiting + discarded and inserted = arrived + running. All 12 runs report zero collisions, teleports and discarded vehicles, which is not proof of real-world safety.
+
+| Demand | Case | Inserted | Arrived | Running | Waiting | Mean halted | Completed travel (s) |
+|---|---|---:|---:|---:|---:|---:|---:|
+| 25% | Baseline | 336 | 318 | 18 | 0 | 9.16 | 52.52 |
+| 25% | Link 3 free lane | 336 | 318 | 18 | 0 | 9.29 | 52.53 |
+| 25% | Link 6 storage | 336 | 317 | 19 | 0 | 9.20 | 54.41 |
+| 25% | Longer greens | 336 | 316 | 20 | 0 | 11.80 | 61.02 |
+| 50% | Baseline | 619 | 542 | 77 | 52 | 42.11 | 88.29 |
+| 50% | Link 3 free lane | 622 | 534 | 88 | 49 | 44.09 | 80.76 |
+| 50% | Link 6 storage | 646 | 542 | 104 | 25 | 55.16 | 99.45 |
+| 50% | Longer greens | 638 | 564 | 74 | 33 | 41.03 | 83.28 |
+| 100% | Baseline | 748 | 577 | 171 | 593 | 111.81 | 161.33 |
+| 100% | Link 3 free lane | 777 | 564 | 213 | 564 | 121.38 | 157.51 |
+| 100% | Link 6 storage | 760 | 559 | 201 | 581 | 133.80 | 176.11 |
+| 100% | Longer greens | 872 | 676 | 196 | 469 | 111.86 | 136.86 |
+
+![Ablation metrics by demand](../results/phase3_ablation.png)
+
+### Lane and edge evidence
+
+At full baseline demand, the mean halted counts on Link 1's `747478914#4` lanes 0/1/2/3 are 6.09/6.03/5.93/5.91 vehicles. Link 5's short origin `1024938013#0` lanes 0/1/2/3 average 4.16/4.27/4.16/4.22. Their full-demand external queues are 172 and 179, respectively; this indicates multi-lane accumulation in these modeled routes rather than a single observed bad lane.
+
+Link 3's long `295789573#0` lane 0 averages 32.70 halted vehicles (snapshot maximum 67), versus 4.24 on lane 1 and 0.06 on lane 2. Its final modeled turn from `295789573#1` connects only from lane 0. Changing only its departure choice to `free` removes its final external queue (38 to 0), but total arrival falls 577 to 564 and mean route halted rises 111.81 to 121.38. This supports sensitivity to insertion/lane allocation under the assumed one-route demand; it does not prove the turning restriction is correct or directly measure what would happen with an additional permitted turn lane.
+
+Link 6's `39943703#8` lanes 0/1 average 3.41/3.38 halted, and its origin lanes 0/1 average 3.04/3.02 while lanes 2/3 average zero. Its modeled final turn uses lanes 0 and 1 only. The external queue is already 52 at 50% demand. Extending virtual origin storage reduces that queue to 25, with arrivals unchanged at 542 and running rising 77 to 104; this shows that limited modeled boundary storage affects *where* the queue is represented. It does not establish that extending the real road would improve throughput. At full demand the storage probe lowers total waiting by 12 but lowers arrivals by 18 and raises mean halted by 21.99.
+
+The longer-green intervention raises full-demand arrivals by 99 and reduces external waiting by 124, while mean halted remains nearly unchanged and 469 still wait. This supports sensitivity to the modeled signal service/cycle, not a validated real-world timing or proof that timing alone caused the backlog. Longer greens worsen completed-trip mean and arrivals at 25% in this finite window. Effects also depend on the joined controller and synthetic routes. All conclusions are confined to this simulation and single seed; 15 minutes, empty start, no drain, unspecified 2016 turn legality, inaccurate network boundaries and a passenger-only fleet limit realism. No controlled experiment here changes the turning connections: adding an unverified connection would alter the conflict/safety model, so independent lane/turn evidence is needed before testing it.
+
+Reproduce from the project root: `unset PYTHONPATH; .venv/bin/python scripts/phase3_ablation.py`. Plot with `python3 scripts/plot_phase3_ablation.py` (system Python with matplotlib); output data are [scenario metrics](../results/phase3_ablation.csv) and [lane queues](../results/phase3_lane_queues.csv). The experiment checks accounting and each generated network's modeled signal safety. The two data CSVs were reproduced byte-for-byte. Historical network, signal, detector mapping, measured boundary flows, turning shares and independent targets still need evidence before calibration or validation; Phase 4 remains paused for review.
