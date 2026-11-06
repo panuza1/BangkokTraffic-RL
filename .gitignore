@@ -3,3 +3,19 @@ __pycache__/
 *.py[cod]
 data/raw/
 data/processed/
+
+# Local environments, caches, and credentials
+venv/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+credentials.*
+secrets.*
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
